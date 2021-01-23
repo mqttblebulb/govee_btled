@@ -7,7 +7,7 @@ The LED in question is the Govee H6001 available for about 13€ on [Amazon Germ
 Requires Python 3.  
 Tested under Python 3.7 on Linux. Should also work for Windows.
 ```
-pip install -U git+https://github.com/Freemanium/govee_btled
+pip install -U git+https://github.com/mqttblebulb/govee_btled
 ```
 
 # Usage
