@@ -2,7 +2,6 @@
 
 from enum import IntEnum
 
-import pygatt
 from colour import Color
 
 import time
@@ -10,6 +9,8 @@ import threading
 import logging
 from .shades_of_white import values as SHADES_OF_WHITE
 from .errors import ConnectionTimeout
+from .bluezdbus import PyDbusBackend, PyDbusDevice
+
 
 UUID_CONTROL_CHARACTERISTIC = '00010203-0405-0607-0809-0a0b0c0d2b11'
 
@@ -38,16 +39,18 @@ class LedMode(IntEnum):
 
 class BluetoothLED:
     """ Bluetooth client for Govee's RGB LED H6001. """
-    def __init__(self, mac, bt_backend_cls=pygatt.GATTToolBackend):
+
+    def __init__(self, mac, bt_backend_cls=PyDbusBackend):
+
         self.mac = mac
         self._bt = bt_backend_cls()
         self._bt.start()
         self.runflag = 1
         try:
             self._dev = self._bt.connect(self.mac)
-        except pygatt.exceptions.NotConnectedError as err:
+        except:
             self._cleanup()
-            raise ConnectionTimeout(self.mac, err)
+            raise ConnectionTimeout(self.mac, "Can't Connect" )
 
         try:
             if ( self.runflag == 1 ):
