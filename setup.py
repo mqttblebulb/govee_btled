@@ -12,7 +12,7 @@ setup(
 
     packages=['govee_btled'],
     install_requires=[
-        'pygatt[GATTTOOL]',
+        'pydbus',
         'colour'
     ]
 )

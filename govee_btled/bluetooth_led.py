@@ -73,6 +73,7 @@ class BluetoothLED:
 
     def _cleanup(self):
         self.runflag = 0   # this is to trigger the ping thread to quit.
+        t1.stop()
 
         if hasattr(self, '_dev') and self._dev:
             self._dev.disconnect()
@@ -80,6 +81,7 @@ class BluetoothLED:
         if hasattr(self, '_bt') and self._bt:
             self._bt.stop()
             self._bt = None
+
     
     def _send(self, cmd, payload):
         """ Sends a command and handles paylaod padding. """
