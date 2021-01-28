@@ -46,34 +46,52 @@ class BluetoothLED:
         self._bt = bt_backend_cls()
         self._bt.start()
         self.runflag = 1
-        try:
-            self._dev = self._bt.connect(self.mac)
-        except:
-            self._cleanup()
-            raise ConnectionTimeout(self.mac, "Can't Connect" )
 
         try:
-            if ( self.runflag == 1 ):
-                t1 = threading.Thread(target=self._pingloop )
-                t1.setName("pingthread")
-                t1.start()
+          self._dev = self._bt.connect(self.mac)
         except:
-            pass
+          # print ( "bluetooth_led: Can't connect to " + self.mac )
+          self.runflag = 0
+          self._cleanup()
+          raise ConnectionTimeout(self.mac, "no connect" )
+
+        print ( "bluetooth_led: CONNECTED to " + self.mac )
+        # print ( "bluetooth_led: runflag = " + str(self.runflag) + ": starting thread for " + self.mac )
+        try:
+          if ( self.runflag == 1 ):
+            # print ( "bluetooth_led: attempting to start thread pingthread" )
+            self.t1 = threading.Thread(target=self._pingloop )
+            self.t1.start()
+        except:
+          self.runflag = 0
+          print ( "bluetooth_led: FAILED to start thread pingthread" )
+          self._cleanup()
+          raise ConnectionTimeout(self.mac, "cannot start thread" )
+          pass
+
+    def stopit(self):
+        print ( "STOPPING this object: " + self.mac )
+        self._cleanup()
 
     def __del__(self):
+        print ( "DELETING object: " + self.mac )
         self._cleanup()
 
     def _pingloop(self):  # This runs as a separate thread to send keep alive
-        while True:
-            if self.runflag == 0:
-                break
+      t = threading.currentThread()
+      while getattr(t,"loopflag", True ):
+        # print ( "_pingloop: pinging bulb: " + self.mac )
+        if self.runflag == 0:
+          print ( "_pingloop: Shutting down pingloop!" )
+          break
 
-            time.sleep(2.0)
-            self.pinger()
+        time.sleep(2.0)
+        self.pinger()
 
     def _cleanup(self):
+      if self.runflag == 1:
+        print ( "_cleanup: Trying to shutdown thread t1 for bulb: "  + self.mac )
         self.runflag = 0   # this is to trigger the ping thread to quit.
-        t1.stop()
 
         if hasattr(self, '_dev') and self._dev:
             self._dev.disconnect()
@@ -82,9 +100,14 @@ class BluetoothLED:
             self._bt.stop()
             self._bt = None
 
-    
+      try:
+        self.t1.loopflag = False
+        self.t1.join()
+      except:
+        print( "_cleanup: thread wasn't running for bulb " + self.mac )
+
     def _send(self, cmd, payload):
-        """ Sends a command and handles paylaod padding. """
+        """ Sends a command and handles payload padding. """
         if not isinstance(cmd, int):
            raise ValueError('Invalid command')
         if not isinstance(payload, bytes) and not (isinstance(payload, list) and all(isinstance(x, int) for x in payload)):
@@ -114,9 +137,17 @@ class BluetoothLED:
 
         pinger = b'\xAA\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xAB'
 
-        self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, pinger)
+        # print ( "pinger: pinging bulb: " + self.mac )
+
+        # self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, pinger)
+        try:
+          self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, pinger)
+        except:
+          print ( "pinger: cannot ping " + self.mac )
+          self._cleanup()
 
     def set_state(self, onoff):
+        # print ( "set__state: toggling ON/OFF: " + self.mac )
         """ Controls the power state of the LED. """
         self._send(LedCommand.POWER, [0x1 if onoff else 0x0])
     
