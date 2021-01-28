@@ -11,7 +11,7 @@ pip install -U git+https://github.com/mqttblebulb/govee_btled
 ```
 
 # Usage
-The wrapper uses [pygatt](https://github.com/peplin/pygatt) to interface with Bluetooth and requires root permissions.
+The wrapper uses pydbus and bluez to emulate functionality originally in pygatt to interface with Bluetooth and requires root permissions. pydbus and bluez arer included in the module bluezdbus.py included as part of this wrapper.
 
 
 See `__main__.py` for a full example in action.
@@ -32,6 +32,9 @@ led.set_color_white(-0.4)
 ```
 
 ### Windows compatibility
+NOTE: as of 2021/01/14, windows is no longer supported as dbus and blue are required.
+
+The following is for historical reference only.
 While the wrapper has not been tested on Windows, you should be able to use it by replacing the backend `pygatt` uses internally.
 ```python
 import pygatt
