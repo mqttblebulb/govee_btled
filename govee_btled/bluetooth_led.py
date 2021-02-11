@@ -139,7 +139,6 @@ class BluetoothLED:
 
         # print ( "pinger: pinging bulb: " + self.mac )
 
-        # self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, pinger)
         try:
           self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, pinger)
         except:
@@ -150,7 +149,7 @@ class BluetoothLED:
         # print ( "set__state: toggling ON/OFF: " + self.mac )
         """ Controls the power state of the LED. """
         self._send(LedCommand.POWER, [0x1 if onoff else 0x0])
-    
+
     def set_brightness(self, value):
         """
         Sets the LED's brightness.
